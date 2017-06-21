@@ -41,8 +41,7 @@ def find_tags_root(current, previous=None):
 class TagSubprocess(object):
     def __init__(self, **kwargs):
         self.default_kwargs = kwargs
-        if IS_WINDOWS:
-            self.default_kwargs['shell'] = True
+        self.default_kwargs['shell'] = False
 
     def create(self, command, **kwargs):
         final_kwargs = self.default_kwargs
@@ -88,17 +87,17 @@ class TagFile(object):
 
     def start_with(self, prefix):
         if int(sublime.version()) >= 3000:
-            return self.subprocess.stdout('global -c %s' % prefix).decode("utf-8").splitlines()
+            return self.subprocess.stdout(['global', '-c', prefix]).decode("utf-8").splitlines()
         else:
-            return self.subprocess.stdout('global -c %s' % prefix).splitlines()
+            return self.subprocess.stdout(['global', '-c', prefix]).splitlines()
 
     def _match(self, pattern, options):
         if int(sublime.version()) >= 3000:
             lines = self.subprocess.stdout(
-            'global %s %s' % (options, pattern)).decode("utf-8").splitlines()
+            ['global', options, pattern]).decode("utf-8").splitlines()
         else:
             lines = self.subprocess.stdout(
-            'global %s %s' % (options, pattern)).splitlines()
+            ['global', options, pattern]).splitlines()
         
 
         matches = []
@@ -110,7 +109,7 @@ class TagFile(object):
         return self._match(pattern, '-ax' + ('r' if reference else ''))
 
     def rebuild(self):
-        retcode, stderr = self.subprocess.call('gtags -v', cwd=self.__root)
+        retcode, stderr = self.subprocess.call(['gtags', '-v'], cwd=self.__root)
         success = retcode == 0
         if not success:
             print(stderr)
